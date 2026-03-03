@@ -7,24 +7,28 @@ ENV GO111MODULE=on \
     GOOS=linux \
     GOARCH=amd64
 
-# Move to working directory
-COPY . .
+# Set the working directory inside the container
+WORKDIR /app
 
-# Copy and download dependency using go mod
-WORKDIR ./src/
+# Copy dependency files first (better layer caching)
+COPY go.mod go.sum ./
 RUN go mod download
 
+# copy source files
+COPY . .
+
+# Download dependency using go mod
+RUN go mod download
 
 # Build the application
-WORKDIR ./cmd/go-rest
+WORKDIR /app/cmd/go-rest
 #RUN go mod download
-RUN go build all
-RUN go build
+RUN go build -o /app/bin/go-rest .
 
-WORKDIR ../../../bin/
-
-# Copy binary from build to main folder
-RUN cp ../src/cmd/go-rest/go-rest* .
+# Run stage
+FROM alpine:latest
+WORKDIR /app
+COPY --from=build /app/bin/go-rest .
 
 # Command to run when starting the container
 CMD ["go-rest"]
