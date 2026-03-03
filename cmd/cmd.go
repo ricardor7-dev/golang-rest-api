@@ -40,7 +40,7 @@ func Run(args []string) (err error){
 	}
 	
 	// setup logger with appropriate defaults
-	lgr := logger.NewWithGCPHook(os.Stdout, lvl, true)	//apagar?
+	lgr := logger.NewWithGCPHook(os.Stdout, lvl, true)	//delete?
 
 	zerolog.SetGlobalLevel(lvl)
 

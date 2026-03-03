@@ -1,4 +1,4 @@
-FROM golang:1.20.14-alpine3.18 AS build
+FROM golang:1.25.7-alpine AS build
 LABEL org.opencontainers.image.source="https://github.com/ric7pt/golang-rest-api"
 
 # Set necessary environmet variables needed for our image

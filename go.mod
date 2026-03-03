@@ -1,6 +1,6 @@
 module golang-rest-api
 
-go 1.20
+go 1.25.7
 
 require (
 	github.com/pkg/errors v0.9.1
