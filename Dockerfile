@@ -25,10 +25,10 @@ WORKDIR /app/cmd/go-rest
 #RUN go mod download
 RUN go build -o /app/bin/go-rest .
 
-# Run stage
+# multi-stage - Run stage 2 (grabs only the built binary)
 FROM alpine:latest
 WORKDIR /app
 COPY --from=build /app/bin/go-rest .
 
 # Command to run when starting the container
-CMD ["go-rest"]
+CMD ["./go-rest"]

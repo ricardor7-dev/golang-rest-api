@@ -13,17 +13,17 @@ import (
 
 const (
 	// DBHostEnv is the database host environment variable name
-	DBHostEnv string = "PGHOST"
+	DBHostEnv string = "DB_HOST"
 	// DBPortEnv is the database port environment variable name
-	DBPortEnv string = "PGPORT"
+	DBPortEnv string = "DB_PORT"
 	// DBNameEnv is the database name environment variable name
-	DBNameEnv string = "PGDATABASE"
+	DBNameEnv string = "DB_NAME"
 	// DBUserEnv is the database user environment variable name
-	DBUserEnv string = "PGUSER"
+	DBUserEnv string = "DB_USER"
 	// DBPasswordEnv is the database user password environment variable name
-	DBPasswordEnv string = "PGPASSWORD"
+	DBPasswordEnv string = "DB_PASSWORD"
 
-	DBSSLMode string = "PGSSLMODE"
+	DBSSLMode string = "DB_SSLMODE"
 	// DBSearchPathEnv is the database search path environment variable name
 	//DBSearchPathEnv string = "DB_SEARCH_PATH"
 )
