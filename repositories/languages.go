@@ -1,14 +1,15 @@
 package repositories
 
 import (
+	"context"
 	"golang-rest-api/db"
 	"golang-rest-api/errs"
 	"golang-rest-api/models"
 )
 
 type LanguagesRepository interface {
-	GetTTSLanguages(genderFiltler bool) ([]models.Language, error)
-	GetTTSGendersByLangCode(langCode string) ([]models.GenderVoice, error)
+	GetTTSLanguages(ctx context.Context, genderFiltler bool) ([]models.Language, error)
+	GetTTSGendersByLangCode(ctx context.Context,langCode string) ([]models.GenderVoice, error)
 }
 
 type languagesRepository struct {
@@ -19,7 +20,7 @@ func NewLanguagesRepository(db *db.BDData) LanguagesRepository {
 	return &languagesRepository{db}
 }
 
-func (tg *languagesRepository) GetTTSLanguages(genderFiltler bool) ([]models.Language, error) {
+func (tg *languagesRepository) GetTTSLanguages(ctx context.Context, genderFiltler bool) ([]models.Language, error) {
 	const op errs.Op = "repositories/LanguagesTTSRepository.GetTTSLanguages"
 	var languages []models.Language
 
@@ -37,7 +38,7 @@ func (tg *languagesRepository) GetTTSLanguages(genderFiltler bool) ([]models.Lan
 	return languages, nil
 }
 
-func (tg *languagesRepository) GetTTSGendersByLangCode(langCode string) ([]models.GenderVoice, error){
+func (tg *languagesRepository) GetTTSGendersByLangCode(ctx context.Context, langCode string) ([]models.GenderVoice, error){
 	const op errs.Op = "repositories/LanguagesTTSRepository.GetTTSGendersByLangCode"
 	var genders []models.GenderVoice
 

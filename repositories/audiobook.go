@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"time"
 
 	"gorm.io/gorm"
@@ -8,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 
+	"golang-rest-api/db"
 	"golang-rest-api/errs"
 	"golang-rest-api/models"
-	"golang-rest-api/db"
 )
 
 //Pagination
@@ -20,11 +21,11 @@ const (
 )
 
 type AudiobookRepository interface{
-	GetAudiobooks(filters map[string]interface{}) ([]models.Audiobook, int, int, int, error)
-	GetAudiobook(id uuid.UUID, tag bool) (models.Audiobook, error)
-	CreateAudiobook(audiobook *models.Audiobook) error
-	DeleteAudiobook(id uuid.UUID) error
-	EditAudiobook(audiobook *models.Audiobook) error
+	GetAudiobooks(ctx context.Context, filters map[string]interface{}) ([]models.Audiobook, int, int, int, error)
+	GetAudiobook(ctx context.Context, id uuid.UUID, tag bool) (models.Audiobook, error)
+	CreateAudiobook(ctx context.Context, audiobook *models.Audiobook) error
+	DeleteAudiobook(ctx context.Context, id uuid.UUID) error
+	EditAudiobook(ctx context.Context, audiobook *models.Audiobook) error
 }
 
 type audiobookRepository struct {
@@ -35,14 +36,14 @@ func NewAudiobookRepository(db *db.BDData) AudiobookRepository {
 	return &audiobookRepository{db}
 }
 
-func (ann * audiobookRepository) GetAudiobooks(filters map[string]interface{}) ([]models.Audiobook, int, int, int, error) {
+func (ann * audiobookRepository) GetAudiobooks(ctx context.Context, filters map[string]interface{}) ([]models.Audiobook, int, int, int, error) {
 	const op errs.Op = "repositories/AudiobookRepository.GetAudiobook"
 	var audiosDB []models.Audiobook
 	var totalRecords int64
 
 	headerParams := filters["headerParams"].(map[string]string)
 
-	db := ann.DB
+	db := ann.DB.WithContext(ctx)
 
 	db = db.Where(&models.Audiobook{AccountID: headerParams["x-kong-jwt-claim-serviceaccount"]})
 
@@ -101,13 +102,13 @@ func (ann * audiobookRepository) GetAudiobooks(filters map[string]interface{}) (
 	return audiosDB, int(totalRecords), page, itemsPerPage, nil
 }
 
-func (ann * audiobookRepository) GetAudiobook(id uuid.UUID, tag bool) (models.Audiobook, error){
+func (ann * audiobookRepository) GetAudiobook(ctx context.Context, id uuid.UUID, tag bool) (models.Audiobook, error){
 	const op errs.Op = "repositories/AudiobookRepository.GetAudiobook"
 
 	var audio models.Audiobook
 	var err error
 
-	db := ann.DB
+	db := ann.DB.WithContext(ctx)
 	if tag{
 		db.Preload("Tag")
 	}
@@ -123,11 +124,11 @@ func (ann * audiobookRepository) GetAudiobook(id uuid.UUID, tag bool) (models.Au
 
 }
 
-func (ann *audiobookRepository) DeleteAudiobook(id uuid.UUID) error{
+func (ann *audiobookRepository) DeleteAudiobook(ctx context.Context, id uuid.UUID) error{
 	const op errs.Op = "repositories/AudiobookRepository.DeleteAudio"
 	var err error
 
-	err = ann.Unscoped().Select(clause.Associations).Delete(&models.Audiobook{ID: id}).Error
+	err = ann.WithContext(ctx).Unscoped().Select(clause.Associations).Delete(&models.Audiobook{ID: id}).Error
 	if err !=nil{
 		return errs.E(op, errs.ERR_DB, err)
 	}
@@ -135,14 +136,14 @@ func (ann *audiobookRepository) DeleteAudiobook(id uuid.UUID) error{
 	return nil
 }
 
-func (ann *audiobookRepository) CreateAudiobook(audiobook *models.Audiobook) error{
+func (ann *audiobookRepository) CreateAudiobook(ctx context.Context, audiobook *models.Audiobook) error{
 	const op errs.Op = "repositories/AudiobookRepository.CreateAudiobook"
 	/*
 	create := func(tx *gorm.DB) error{
 		return tx.Create(&audiobook).Error
 	}
 	*/
-	if err := doTransactionSlice(ann.DB, []func(tx *gorm.DB) error{ 
+	if err := doTransactionSlice(ann.DB.WithContext(ctx), []func(tx *gorm.DB) error{ 
 		func(tx *gorm.DB) error{
 			return tx.Create(&audiobook).Error
 		},
@@ -158,15 +159,16 @@ func (ann *audiobookRepository) CreateAudiobook(audiobook *models.Audiobook) err
 	return nil
 }
 
-func  (ann *audiobookRepository) EditAudiobook(audio *models.Audiobook) error{
+func  (ann *audiobookRepository) EditAudiobook(ctx context.Context, audio *models.Audiobook) error{
 	const op errs.Op = "repositories/AudiobookRepository.EditAudiobook"
 
+	db := ann.DB.WithContext(ctx)
 	//if new tags, remove the old
 	if audio.Tag !=nil{
-		ann.DB.Model(&models.Audiobook{ID: audio.ID}).Association("Tag").Clear()
+		db.Model(&models.Audiobook{ID: audio.ID}).Association("Tag").Clear()
 	}
 
-	if err := ann.DB.Save(audio).Error; err != nil {
+	if err := db.Save(audio).Error; err != nil {
 		return errs.E(op, errs.ERR_DB, err)
 	}
 
