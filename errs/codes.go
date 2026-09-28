@@ -21,6 +21,10 @@ var AB_ERR_013 Code = Code{Code: "AB_ERR_013", Info: "account not authorized for
 var AB_ERR_014 Code = Code{Code: "AB_ERR_014", Info: "can't delete, audiobook in use"}
 var AB_ERR_015 Code = Code{Code: "AB_ERR_015", Info: "genders query path parameter not boolean"}
 var AB_ERR_016 Code = Code{Code: "AB_ERR_016", Info: "langCode query path parameter empty"}
+var AB_ERR_017 Code = Code{Code: "AB_ERR_017", Info: "sortBy query path parameter must be name or modifiedOn"}
+var AB_ERR_018 Code = Code{Code: "AB_ERR_018", Info: "orderBy query path parameter must be asc or desc"}
+var AB_ERR_019 Code = Code{Code: "AB_ERR_019", Info: "date query path parameter not in YYYY-MM-DD format"}
+var AB_ERR_020 Code = Code{Code: "AB_ERR_020", Info: "invalid query path parameter"}
 
 var ERR_DB Code = Code{Code: "ERR_DB", Info: "database error"}
 var ERR_ENCODEJSON Code = Code{Code: "ERR_ENCODEJSON", Info: "error encoding json response"}

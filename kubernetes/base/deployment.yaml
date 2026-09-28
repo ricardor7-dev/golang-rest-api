@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: teste-audiobooks
-  #namespace: cxai
+  #namespace: mySpace
 spec:
   replicas: 1
   selector:

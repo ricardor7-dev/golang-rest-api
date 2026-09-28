@@ -19,6 +19,7 @@ import (
 
 	"golang-rest-api/errs"
 	"golang-rest-api/models"
+	"golang-rest-api/repositories"
 )
 
 // Request Header Claims
@@ -42,16 +43,6 @@ func getHeaderParams(r *http.Request) map[string]string {
 	return params
 }
 
-// reads integers from the request header parameter, if it doesnt exist puts the v input value
-func readInt(r *http.Request, param string, v int) (int, error) {
-	p := r.FormValue(param)
-	if p == "" {
-		return v, nil
-	}
-
-	return strconv.Atoi(p)
-}
-
 // ////////////////////////////////////////////////////////////////////////////////
 func (s *Server) getAudiobooks(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -61,33 +52,15 @@ func (s *Server) getAudiobooks(w http.ResponseWriter, r *http.Request) {
 
 	logger := *hlog.FromRequest(r)
 
-	filters := make(map[string]interface{})
-
-	filters["headerParams"] = getHeaderParams(r)
-
-	filters["name"] = r.FormValue("name")
-	filters["sortBy"] = r.FormValue("sortBy")
-	filters["orderBy"] = r.FormValue("orderBy")
-	filters["date"] = r.FormValue("date")
-
-	filters["tag"], err = readInt(r, "tag", 0)
-	if err != nil {
-		errs.HTTPErrorResponse(w, logger, errs.E(errs.AB_ERR_002, err))
+	var q repositories.AudiobookQuery
+	if err = decodeQuery(r.URL.Query(), &q); err != nil {
+		errs.HTTPErrorResponse(w, logger, err)
 		return
 	}
 
-	filters["page"], err = readInt(r, "page", 0)
-	if err != nil {
-		errs.HTTPErrorResponse(w, logger, errs.E(errs.AB_ERR_003, err))
-		return
-	}
-	filters["itemsPerPage"], err = readInt(r, "itemsPerPage", 0)
-	if err != nil {
-		errs.HTTPErrorResponse(w, logger, errs.E(errs.AB_ERR_004, err))
-		return
-	}
+	account := r.Header.Get(HeaderAccount)
 
-	audiobooksDB, totalRecords, page, itemsPerPage, err := s.Repositories.AudiobookRepository.GetAudiobooks(ctx, filters)
+	audiobooksDB, totalRecords, page, itemsPerPage, err := s.Repositories.AudiobookRepository.GetAudiobooks(ctx, account, q)
 	if err != nil {
 		errs.HTTPErrorResponse(w, logger, err)
 		return
@@ -118,7 +91,9 @@ func (s *Server) getAudiobookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audio, err := s.Repositories.AudiobookRepository.GetAudiobook(ctx, id, true)
+	account := r.Header.Get(HeaderAccount)
+
+	audio, err := s.Repositories.AudiobookRepository.GetAudiobook(ctx, account, id, true)
 	if err != nil {
 		errs.HTTPErrorResponse(w, logger, err)
 		return
@@ -233,7 +208,10 @@ func (s *Server) editAudiobook(w http.ResponseWriter, r *http.Request) {
 
 	//////////////
 
-	audioBD, err := s.Repositories.AudiobookRepository.GetAudiobook(ctx, id, false)
+	account := r.Header.Get(HeaderAccount)
+
+	// only the owner's audiobook is found, so the edit below is limited to it
+	audioBD, err := s.Repositories.AudiobookRepository.GetAudiobook(ctx, account, id, false)
 	if err != nil {
 		errs.HTTPErrorResponse(w, logger, err)
 		return
@@ -273,7 +251,9 @@ func (s *Server) deleteAudiobookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.Repositories.AudiobookRepository.DeleteAudiobook(ctx, id); err != nil {
+	account := r.Header.Get(HeaderAccount)
+
+	if err = s.Repositories.AudiobookRepository.DeleteAudiobook(ctx, account, id); err != nil {
 		errs.HTTPErrorResponse(w, logger, err)
 		return
 	}

@@ -46,7 +46,8 @@ func HTTPErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, err error) {
 func httpErrorStatusCode(k Code) int {
 	switch k {
 	case AB_ERR_002, AB_ERR_003, AB_ERR_004, AB_ERR_005,
-	AB_ERR_006, AB_ERR_011, AB_ERR_015, AB_ERR_016:
+	AB_ERR_006, AB_ERR_011, AB_ERR_015, AB_ERR_016,
+	AB_ERR_017, AB_ERR_018, AB_ERR_019, AB_ERR_020:
 		return http.StatusBadRequest
 	case AB_ERR_014:
 		return http.StatusConflict
