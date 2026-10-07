@@ -1,0 +1,8 @@
+.git
+.env
+
+.vscode
+
+kubernetes/
+
+*.test
